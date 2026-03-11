@@ -8,6 +8,15 @@ class ManHinhDongHo extends StatefulWidget {
 }
 
 class _ManHinhDongHoState extends State<ManHinhDongHo> {
+  int giayConLai = 25 * 60;
+  bool dangChay = false;
+
+  String layChuoiThoiGian() {
+    int phut = giayConLai ~/ 60;
+    int giay = giayConLai % 60;
+    return '${phut.toString().padLeft(2, '0')}:${giay.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,9 +29,23 @@ class _ManHinhDongHoState extends State<ManHinhDongHo> {
       ),
       body: SafeArea(
         child: Center(
-          child: Text(
-            'Màn hình đồng hồ Pomodoro',
-            style: const TextStyle(color: Colors.white, fontSize: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                layChuoiThoiGian(),
+                style: const TextStyle(
+                  fontSize: 72,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Sẵn sàng bắt đầu',
+                style: TextStyle(color: Colors.white70, fontSize: 24),
+              ),
+            ],
           ),
         ),
       ),
