@@ -8,21 +8,25 @@ class ManHinhDongHo extends StatefulWidget {
 }
 
 class _ManHinhDongHoState extends State<ManHinhDongHo> {
-  int giayConLai = 25 * 60;
+  int giayConLai = 25 * 60; // 1500 giây = 25 phút
   bool dangChay = false;
   bool laPhienTapTrung = true;
 
   String layChuoiThoiGian() {
-    int phut = giayConLai ~/ 60;
-    int giay = giayConLai % 60;
-    return '${phut.toString().padLeft(2, '0')}:${giay.toString().padLeft(2, '0')}';
+    int tongGiay = giayConLai;
+    int gio = tongGiay ~/ 3600;
+    int phut = (tongGiay % 3600) ~/ 60;
+    int giay = tongGiay % 60;
+    return '${gio.toString().padLeft(2, '0')}:${phut.toString().padLeft(2, '0')}:${giay.toString().padLeft(2, '0')}';
   }
 
-  Color layMauNen() {
+  List<Color> layMauGradient() {
     if (dangChay) {
-      return laPhienTapTrung ? Colors.red[800]! : Colors.green[800]!;
+      return laPhienTapTrung
+          ? [Colors.red[900]!, Colors.red[600]!]
+          : [Colors.green[900]!, Colors.green[600]!];
     }
-    return Colors.blueGrey[900]!;
+    return [Colors.blueGrey[900]!, Colors.blueGrey[700]!];
   }
 
   String layTrangThai() {
@@ -35,127 +39,185 @@ class _ManHinhDongHoState extends State<ManHinhDongHo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: layMauNen(),
-      appBar: AppBar(
-        title: const Text('Đồng hồ Pomodoro'),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 280,
-                height: 280,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: 0.0,
-                      strokeWidth: 24,
-                      backgroundColor: Colors.white.withOpacity(0.2),
-                      color: Colors.white,
-                    ),
-                    Text(
-                      layChuoiThoiGian(),
-                      style: const TextStyle(
-                        fontSize: 72,
-                        fontWeight: FontWeight.w900,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: layMauGradient(),
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon trạng thái nhỏ
+                Icon(
+                  laPhienTapTrung
+                      ? Icons.center_focus_strong_rounded
+                      : Icons.coffee_rounded,
+                  size: 50,
+                  color: Colors.white.withOpacity(0.85),
+                ),
+                const SizedBox(height: 16),
+
+                // Vòng tròn thời gian với bóng nhẹ
+                SizedBox(
+                  width: 320,
+                  height: 320,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Bóng nền nhẹ cho chiều sâu
+                      Container(
+                        width: 300,
+                        height: 300,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.35),
+                              blurRadius: 25,
+                              offset: const Offset(8, 8),
+                            ),
+                            BoxShadow(
+                              color: Colors.white.withOpacity(0.12),
+                              blurRadius: 25,
+                              offset: const Offset(-8, -8),
+                            ),
+                          ],
+                        ),
+                      ),
+                      CircularProgressIndicator(
+                        value: 0.0,
+                        strokeWidth: 28,
+                        backgroundColor: Colors.white.withOpacity(0.18),
                         color: Colors.white,
-                        letterSpacing: 4,
+                      ),
+                      Text(
+                        layChuoiThoiGian(),
+                        style: const TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 3,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 12,
+                              color: Colors.black54,
+                              offset: Offset(3, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 48),
+
+                // Trạng thái với fade nhẹ
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(milliseconds: 600),
+                  child: Text(
+                    layTrangThai(),
+                    style: TextStyle(
+                      fontSize: 30,
+                      color: Colors.white.withOpacity(0.92),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 80),
+
+                // Nút điều khiển to hơn, bóng theo màu
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          dangChay = !dangChay;
+                        });
+                      },
+                      icon: Icon(
+                        dangChay
+                            ? Icons.pause_rounded
+                            : Icons.play_arrow_rounded,
+                        size: 40,
+                      ),
+                      label: Text(
+                        dangChay ? 'Tạm dừng' : 'Bắt đầu',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 50,
+                          vertical: 22,
+                        ),
+                        backgroundColor: Colors.white,
+                        foregroundColor: dangChay
+                            ? Colors.red[700]
+                            : Colors.green[700],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40),
+                        ),
+                        elevation: 10,
+                        shadowColor: dangChay
+                            ? Colors.red.withOpacity(0.5)
+                            : Colors.green.withOpacity(0.5),
+                      ),
+                    ),
+                    const SizedBox(width: 32),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          giayConLai = 25 * 60;
+                          dangChay = false;
+                          laPhienTapTrung = true;
+                        });
+                      },
+                      icon: const Icon(Icons.refresh_rounded, size: 36),
+                      label: const Text(
+                        'Đặt lại',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 22,
+                        ),
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white, width: 2.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(40),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              const SizedBox(height: 40),
-
-              Text(
-                layTrangThai(),
-                style: TextStyle(
-                  fontSize: 28,
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-
-              const SizedBox(height: 80),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        dangChay = !dangChay;
-                      });
-                    },
-                    icon: Icon(
-                      dangChay ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      size: 32,
-                    ),
-                    label: Text(
-                      dangChay ? 'Tạm dừng' : 'Bắt đầu',
-                      style: const TextStyle(fontSize: 20),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 18,
-                      ),
-                      backgroundColor: Colors.white,
-                      foregroundColor: dangChay
-                          ? Colors.red[800]
-                          : Colors.green[800],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      elevation: 6,
-                    ),
-                  ),
-
-                  const SizedBox(width: 24),
-
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        giayConLai = 25 * 60;
-                        dangChay = false;
-                        laPhienTapTrung = true;
-                      });
-                    },
-                    icon: const Icon(Icons.refresh_rounded, size: 28),
-                    label: const Text(
-                      'Đặt lại',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 18,
-                      ),
-                      foregroundColor: Colors.white,
-                      side: const BorderSide(color: Colors.white, width: 2),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
 
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black.withOpacity(0.3),
+        backgroundColor: Colors.black.withOpacity(0.4),
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white70,
+        selectedFontSize: 14,
+        unselectedFontSize: 12,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.timer), label: 'Đồng hồ'),
           BottomNavigationBarItem(
