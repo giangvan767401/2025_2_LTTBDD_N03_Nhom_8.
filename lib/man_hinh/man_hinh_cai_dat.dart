@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ManHinhCaiDat extends StatefulWidget {
   const ManHinhCaiDat({super.key});
@@ -12,6 +13,25 @@ class _ManHinhCaiDatState extends State<ManHinhCaiDat> {
   final _nghiNganController = TextEditingController();
   final _nghiDaiController = TextEditingController();
   final _chuKyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _taiCaiDat();
+  }
+
+  Future<void> _taiCaiDat() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _tapTrungController.text = (prefs.getInt('thoiGianTapTrungPhut') ?? 25)
+          .toString();
+      _nghiNganController.text = (prefs.getInt('thoiGianNghiNganPhut') ?? 5)
+          .toString();
+      _nghiDaiController.text = (prefs.getInt('thoiGianNghiDaiPhut') ?? 15)
+          .toString();
+      _chuKyController.text = (prefs.getInt('chuKyNghiDai') ?? 4).toString();
+    });
+  }
 
   Widget _buildTextField(
     String label,
