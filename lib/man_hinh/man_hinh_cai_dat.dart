@@ -33,6 +33,35 @@ class _ManHinhCaiDatState extends State<ManHinhCaiDat> {
     });
   }
 
+  Future<void> _luuCaiDat() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    int tapTrung = int.tryParse(_tapTrungController.text) ?? 25;
+    int nghiNgan = int.tryParse(_nghiNganController.text) ?? 5;
+    int nghiDai = int.tryParse(_nghiDaiController.text) ?? 15;
+    int chuKy = int.tryParse(_chuKyController.text) ?? 4;
+
+    await prefs.setInt('thoiGianTapTrungPhut', tapTrung);
+    await prefs.setInt('thoiGianNghiNganPhut', nghiNgan);
+    await prefs.setInt('thoiGianNghiDaiPhut', nghiDai);
+    await prefs.setInt('chuKyNghiDai', chuKy);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã lưu cấu hình thành công!')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _tapTrungController.dispose();
+    _nghiNganController.dispose();
+    _nghiDaiController.dispose();
+    _chuKyController.dispose();
+    super.dispose();
+  }
+
   Widget _buildTextField(
     String label,
     TextEditingController controller,
@@ -100,11 +129,7 @@ class _ManHinhCaiDatState extends State<ManHinhCaiDat> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Chưa có chức năng lưu')),
-                );
-              },
+              onPressed: _luuCaiDat,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.blueGrey[900],
