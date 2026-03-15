@@ -4,6 +4,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:vibration/vibration.dart';
 import '../models/phien_pomodoro.dart'; 
 import 'man_hinh_thong_ke.dart';
+import 'man_hinh_cai_dat.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ManHinhDongHo extends StatefulWidget {
   const ManHinhDongHo({super.key});
@@ -20,12 +22,54 @@ class _ManHinhDongHoState extends State<ManHinhDongHo> {
   Timer? _timer;
 
   List<PhienPomodoro> danhSachPhien = [];
+  int soPhienDaHoc = 0;
+
+  // Cấu hình mặc định
+  int _thoiGianTapTrungPhut = 25;
+  int _thoiGianNghiNganPhut = 5;
+  int _thoiGianNghiDaiPhut = 15;
+  int _chuKyNghiDai = 4;
 
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   final TextEditingController _gioController = TextEditingController(text: '00');
   final TextEditingController _phutController = TextEditingController(text: '25');
   final TextEditingController _giayController = TextEditingController(text: '00');
+
+  @override
+  void initState() {
+    super.initState();
+    _taiCaiDat().then((_) {
+      _capNhatThoiGianHienTai();
+    });
+  }
+
+  Future<void> _taiCaiDat() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _thoiGianTapTrungPhut = prefs.getInt('thoiGianTapTrungPhut') ?? 25;
+      _thoiGianNghiNganPhut = prefs.getInt('thoiGianNghiNganPhut') ?? 5;
+      _thoiGianNghiDaiPhut = prefs.getInt('thoiGianNghiDaiPhut') ?? 15;
+      _chuKyNghiDai = prefs.getInt('chuKyNghiDai') ?? 4;
+    });
+  }
+  
+  void _capNhatThoiGianHienTai() {
+    if (!dangChay) {
+        setState(() {
+           if (laPhienTapTrung) {
+             giayConLai = _thoiGianTapTrungPhut * 60;
+           } else {
+             if (soPhienDaHoc > 0 && soPhienDaHoc % _chuKyNghiDai == 0) {
+               giayConLai = _thoiGianNghiDaiPhut * 60;
+             } else {
+               giayConLai = _thoiGianNghiNganPhut * 60;
+             }
+           }
+           tongGiayBanDau = giayConLai;
+        });
+    }
+  }
 
   @override
   void dispose() {
@@ -82,16 +126,18 @@ class _ManHinhDongHoState extends State<ManHinhDongHo> {
             timer.cancel();
             dangChay = false;
 
-            if (laPhienTapTrung) {
-              danhSachPhien.add(PhienPomodoro(
-                thoiGianHoanThanh: DateTime.now(),
-                thoiLuongPhut: tongGiayBanDau ~/ 60, 
-              ));
-            }
+              if (laPhienTapTrung) {
+                soPhienDaHoc++;
+                danhSachPhien.add(PhienPomodoro(
+                  thoiGianHoanThanh: DateTime.now(),
+                  thoiLuongPhut: tongGiayBanDau ~/ 60, 
+                ));
+              }
 
-            laPhienTapTrung = !laPhienTapTrung;
+              laPhienTapTrung = !laPhienTapTrung;
+              _capNhatThoiGianHienTai();
 
-            _phatAmThanhVaRung();
+              _phatAmThanhVaRung();
 
           }
         });
@@ -341,10 +387,9 @@ const SizedBox(width: 32),
                     OutlinedButton.icon(
                       onPressed: () {
                         setState(() {
-                          giayConLai = 0;
                           dangChay = false;
                           laPhienTapTrung = true;
-                          tongGiayBanDau = 0;
+                          _capNhatThoiGianHienTai();
                         });
                         _timer?.cancel();
                       },
@@ -382,12 +427,21 @@ const SizedBox(width: 32),
                builder: (context) => ManHinhThongKe(danhSachPhien: danhSachPhien),
               ),
             );
+         } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ManHinhCaiDat()),
+            ).then((_) {
+               _taiCaiDat().then((_) {
+                  _capNhatThoiGianHienTai();
+               });
+            });
          }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.timer), label: 'Đồng hồ'),
           BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Thống kê'),
-          BottomNavigationBarItem(icon: Icon(Icons.info), label: 'Thông tin nhóm'),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
         ],
       ),
     );
